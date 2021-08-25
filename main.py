@@ -41,9 +41,8 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.nextpage = ''
         self.previouspage = ''
         self.cur_page = ''
-        self.actmovies = []
-        self.allmovies = []
-        self.currentplay = ''
+        self.allmovidesdata = {}
+
     
     def show(self):
         controls = self.makeLayout()
@@ -280,7 +279,6 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         return ''
         
     def on_grid_click(self, page, listControl, item, itemControl):
-        self.player.closeModal('mediaframe',False)
         self.loading()
         mediapageurl = self.medias[item]['url']
         res = requests.get(mediapageurl)
@@ -305,11 +303,6 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
                 actorinfo = selector.select('ul > li')
                 for item in  actorinfo:
                     span = item.select('span')[0]
-                    print(span.string)
-                    #infostr = infostr + span.string
-                    #li_as = item.select('a')
-                    #for li_a in  li_as:
-                    #    infostr = infostr + li_a.string
                     infostr = infostr + item.getText() + '\\n'                
             
             selector = bs.find_all('div', class_='fed-tabs-foot')
@@ -336,18 +329,12 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
                         listurl.append({'playname':name,'url':pageurl})
                     playurls.append(listurl)
         
-        self.allmovies = playurls
-        self.actmovies = []
+        allmovies = playurls
+        actmovies = []
         if len(playurls) > 0:
-            self.actmovies = playurls[0]
+            actmovies = playurls[0]
+        self.allmovidesdata[medianame] = {'allmovies':allmovies,'actmovies':actmovies}
         
-        if len(xls) > 0:
-            self.currentplay = '已选择:' + xls[0]['title']
-        print(xls[0]['index'])
-        print('======================')
-        print(self.currentplay)
-        #mediaurl = self.getPlayUrl(mediapageurl)
-        #print(mediaurl)
         xl_list_layout = {'type':'link','name':'title','textColor':'#ff0000','width':0.6,'@click':'on_xl_click'}
         movie_list_layout = {'type':'link','name':'playname','@click':'on_movieurl_click'}
         controls = [
@@ -365,23 +352,22 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
             },
             {'type':'space','height':5},
             {'group':
-                {'type':'grid','name':'movielist','itemlayout':movie_list_layout,'value':self.actmovies,'separator':True,'itemheight':25,'itemwidth':60},
+                {'type':'grid','name':'movielist','itemlayout':movie_list_layout,'value':actmovies,'separator':True,'itemheight':25,'itemwidth':60},
                 'height':150
             }
         ]
         self.loading(True)
-        self.player.doModal('mediaframe',400,420,medianame,controls)
+        self.player.doModal(medianame,400,420,medianame,controls)
 
     
     def on_xl_click(self, page, listControl, item, itemControl):
-        if len(self.allmovies) > item:
-            self.actmovies = self.allmovies[item]
-            self.player.updateControlValue('mediaframe','currentplay',self.currentplay)
-        self.player.updateControlValue('mediaframe','movielist',self.actmovies)
+        if len(self.allmovidesdata[page]['allmovies']) > item:
+            self.allmovidesdata[page]['actmovies'] = self.allmovidesdata[page]['allmovies'][item]
+        self.player.updateControlValue(page,'movielist',self.allmovidesdata[page]['actmovies'])
         
     def on_movieurl_click(self, page, listControl, item, itemControl):
-        if len(self.actmovies) > item:
-            playurl = self.actmovies[item]['url']
+        if len(self.allmovidesdata[page]['actmovies']) > item:
+            playurl = self.allmovidesdata[page]['actmovies'][item]['url']
             print(playurl)
             self.playMovieUrl(playurl)
             
@@ -389,13 +375,18 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         res = requests.get(playpageurl)
         if res.status_code == 200:
             bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
-            selector = bs.find_all('div', class_='fed-play-player')[0]
-            item = selector.select('div')[0]
-            scriptitem = item.select('script')[0]
-            jsonstr = re.findall(r"var player_data=(.+)",scriptitem.string)[0]
-            playerjson = json.loads(jsonstr)
-            self.playurl  = playerjson['url']
-            self.player.play(self.playurl)
+            try:
+                selector = bs.find_all('div', class_='fed-play-player')[0]
+                item = selector.select('div')[0]
+                scriptitem = item.select('script')[0]
+                jsonstr = re.findall(r"var player_data=(.+)",scriptitem.string)[0]
+                playerjson = json.loads(jsonstr)
+                self.playurl  = playerjson['url']
+                self.player.play(self.playurl)
+            except:
+                selector = bs.find_all('p', class_='copyright_notice')
+                if len(selector) > 0:
+                    self.player.toast('mediaframe',selector[0].string)
             
     def loading(self, stopLoading = False):
         if hasattr(self.player,'loadingAnimation'):
