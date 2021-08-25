@@ -389,13 +389,18 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         res = requests.get(playpageurl)
         if res.status_code == 200:
             bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
-            selector = bs.find_all('div', class_='fed-play-player')[0]
-            item = selector.select('div')[0]
-            scriptitem = item.select('script')[0]
-            jsonstr = re.findall(r"var player_data=(.+)",scriptitem.string)[0]
-            playerjson = json.loads(jsonstr)
-            self.playurl  = playerjson['url']
-            self.player.play(self.playurl)
+            try:
+                selector = bs.find_all('div', class_='fed-play-player')[0]
+                item = selector.select('div')[0]
+                scriptitem = item.select('script')[0]
+                jsonstr = re.findall(r"var player_data=(.+)",scriptitem.string)[0]
+                playerjson = json.loads(jsonstr)
+                self.playurl  = playerjson['url']
+                self.player.play(self.playurl)
+            except:
+                selector = bs.find_all('p', class_='copyright_notice')
+                if len(selector) > 0:
+                    self.player.toast('mediaframe',selector[0].string)
             
     def loading(self, stopLoading = False):
         if hasattr(self.player,'loadingAnimation'):
