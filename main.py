@@ -42,11 +42,14 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         self.previouspage = ''
         self.cur_page = ''
         self.allmovidesdata = {}
+        searchurl = eighty_url + '/map.html'
+        self.reloadPage(searchurl)
 
     
     def show(self):
         controls = self.makeLayout()
         self.doModal('main',800,600,'',controls)
+        print('===================2')
     
     def makeLayout(self):
         mainmenu = []
@@ -260,10 +263,6 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
                     else:
                         self.cur_page = '第1/1页'
                     
-        print(self.firstpage)
-        print(self.lastpage)
-        print(self.nextpage)
-        print(self.previouspage)
         self.medias = medialist
         self.player.updateControlValue('main','mediagrid',self.medias)
         self.loading(True)
