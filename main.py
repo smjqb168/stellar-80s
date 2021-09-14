@@ -147,7 +147,8 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
                     picinfo = item.select('a.fed-list-pics.fed-lazy.fed-part-2by3')
                     urlinfo = item.select('a.fed-list-title.fed-font-xiv.fed-text-center.fed-text-sm-left.fed-visible.fed-part-eone')
                     if picinfo and urlinfo:
-                        pic = eighty_url + picinfo[0].get('data-original')
+                        pic = picinfo[0].get('data-original')
+                        print(pic)
                         name = urlinfo[0].string
                         mediaurl = eighty_url + urlinfo[0].get('href')
                         self.medias.append({'url':mediaurl,'picture':pic,'title':name})
@@ -158,7 +159,7 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
                         picinfo = item.select('dt > a')
                         urlinfo = item.select('dd.fed-deta-content.fed-col-xs7.fed-col-sm8 > h3 > a')
                         if picinfo and urlinfo:
-                            pic = eighty_url + picinfo[0].get('data-original')
+                            pic = picinfo[0].get('data-original')
                             name = urlinfo[0].string
                             mediaurl = eighty_url + urlinfo[0].get('href')
                             self.medias.append({'url':mediaurl,'picture':pic,'title':name})
