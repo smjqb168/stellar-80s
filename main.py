@@ -226,7 +226,7 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
             if selector:
                 picinfo = selector.select('a')[0]
                 if picinfo:
-                    picurl = eighty_url + picinfo.get('data-original')
+                    picurl = picinfo.get('data-original')
             
             selector = bs.find_all('dd', class_='fed-deta-content fed-col-xs7 fed-col-sm8')[0]
             if selector:
@@ -290,8 +290,9 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
             }
         ]
         self.loading(True)
-        self.player.doModal(medianame,400,470,medianame,controls)
-
+        result,controls = self.player.doModal(medianame,400,470,medianame,controls)
+        if result == False:
+            del self.allmovidesdata[medianame]
     
     def on_xl_click(self, page, listControl, item, itemControl):
         if len(self.allmovidesdata[page]['allmovies']) > item:
