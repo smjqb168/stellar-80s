@@ -291,8 +291,6 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         self.loading(True)
         result,controls = self.player.doModal(medianame,400,470,medianame,controls)
-        if result == False:
-            del self.allmovidesdata[medianame]
     
     def on_xl_click(self, page, listControl, item, itemControl):
         if len(self.allmovidesdata[page]['allmovies']) > item:
