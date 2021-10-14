@@ -241,26 +241,31 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
             selector = bs.find_all('div', class_='fed-tabs-foot')
             xlselector = selector[0]
             playurlselector = selector[1]
+            xlindex = []
             if xlselector:
                 xllist = xlselector.select('ul > li')
                 n = 0
                 for item in xllist:
                     n = n + 1
-                    xls.append({'index':n,'title':item.select('a.fed-tabs-btn.fed-btns-info.fed-rims-info.fed-part-eone')[0].string})
+                    xlname = item.select('a.fed-tabs-btn.fed-btns-info.fed-rims-info.fed-part-eone')[0].string
+                    if (xlname != '自建速播'):
+                        xls.append({'index':n,'title':xlname})
+                        xlindex.append(n)
                     
             if playurlselector:
                 urls = playurlselector.select('ul')
                 n = 0
                 for itemurls in urls:
                     n = n + 1
-                    urllist = itemurls.select('li')
-                    listurl = []
-                    for urlitem in urllist:
-                        info = urlitem.select('a')[0]
-                        name = info.string
-                        pageurl = eighty_url + info.get('href')
-                        listurl.append({'playname':name,'url':pageurl})
-                    playurls.append(listurl)
+                    if n in xlindex:
+                        urllist = itemurls.select('li')
+                        listurl = []
+                        for urlitem in urllist:
+                            info = urlitem.select('a')[0]
+                            name = info.string
+                            pageurl = eighty_url + info.get('href')
+                            listurl.append({'playname':name,'url':pageurl})
+                        playurls.append(listurl)
         
         allmovies = playurls
         actmovies = []
@@ -305,6 +310,7 @@ class eightysplugin(StellarPlayer.IStellarPlayerPlugin):
             
     def playMovieUrl(self,playpageurl):
         res = requests.get(playpageurl)
+        print(playpageurl)
         if res.status_code == 200:
             bs = bs4.BeautifulSoup(res.content.decode('UTF-8','ignore'),'html.parser')
             try:
